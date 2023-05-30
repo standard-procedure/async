@@ -41,4 +41,23 @@ RSpec.describe Standard::Procedure::Async::Actor do
     # test that do_something actually ran in a different thread
     expect(other_thread).not_to eq current_thread
   end
+
+  it "adds multiple messages to a queue and performs them in order" do
+    klass = Class.new do
+      include Standard::Procedure::Async::Actor
+
+      async_def :do_something do |number|
+        sleep rand(0.1)
+        number
+      end
+    end
+    instance = klass.new
+    # the implementation of do_something sleeps for a random amount of time
+    # so even though we add all the messages to the queue at once
+    # and ask for the values in reverse order
+    # we still expect the sequence to hold
+    results = (1..10).map { |number| instance.do_something(number) }
+    values_in_reverse = results.length.downto(1).map { |i| results[i - 1].value }
+    expect(values_in_reverse).to eq (1..10).to_a.reverse
+  end
 end
