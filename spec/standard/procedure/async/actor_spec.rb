@@ -3,7 +3,7 @@ RSpec.describe Standard::Procedure::Async::Actor do
     klass = Class.new do
       include Standard::Procedure::Async::Actor
 
-      async_def :do_something do
+      async :do_something do
         :the_result
       end
     end
@@ -20,7 +20,7 @@ RSpec.describe Standard::Procedure::Async::Actor do
     klass = Struct.new(:lock) do
       include Standard::Procedure::Async::Actor
 
-      async_def :do_something do
+      async :do_something do
         # wait till the main thread tells us to go
         value = lock.take
         sleep 0.1
@@ -48,7 +48,7 @@ RSpec.describe Standard::Procedure::Async::Actor do
     klass = Struct.new(:values) do
       include Standard::Procedure::Async::Actor
 
-      async_def :do_something do |number|
+      async :do_something do |number|
         sleep(0.3) if number % 2 == 0
         values << number
         :done

@@ -3,7 +3,7 @@ RSpec.describe Standard::Procedure::Async::Actor do
     klass = Class.new do
       include Standard::Procedure::Async::Actor
 
-      async_def :do_something do
+      async :do_something do
         sleep 0.2
         :the_result
       end

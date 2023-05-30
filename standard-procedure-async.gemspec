@@ -10,15 +10,15 @@ Gem::Specification.new do |spec|
 
   spec.summary = "A simple wrapper around Concurrent::Future to make concurrent-ruby Rails-friendly."
   spec.description = "Provides a wrapper around concurrent-ruby's Concurrent::Future to automatically wrap it in a Rails-friendly executor."
-  spec.homepage = "https://github.com"
+  spec.homepage = "https://github.com/standard-procedure/async"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.7.0"
 
   spec.metadata["allowed_push_host"] = "https://example.com"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com"
-  spec.metadata["changelog_uri"] = "https://github.com"
+  spec.metadata["source_code_uri"] = "https://github.com/standard-procedure/async"
+  spec.metadata["changelog_uri"] = "https://github.com/standard-procedure/async/blob/main/CHANGELOG.md"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     `git ls-files -z`.split("\x0").reject do |f|

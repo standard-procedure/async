@@ -18,7 +18,7 @@ module Standard::Procedure::Async
     end
 
     module ClassMethods
-      def async_def name, &implementation
+      def async name, &implementation
         name = name.to_sym
         implementation_name = :"_#{name}"
 
