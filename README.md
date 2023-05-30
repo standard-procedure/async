@@ -53,7 +53,7 @@ puts await { @my_object.greet } # => "Hello Paul"
 
 @initial_status = @my_object.do_some_long_running_task 
 puts @initial_status # => a Concurrent::MVar
-puts @initial_status.take # => :in_progress
+puts @initial_status.value # => :in_progress
 sleep 11
 @final_status = await { @my_object.report_status }
 puts @final_status # => :done
@@ -66,9 +66,9 @@ When defining `MyObject`, we use `async_def` instead of `def` for each method.  
 
 ### Awaiting the results from those methods
 
-The async wrapper always returns a [Concurrent::MVar](https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/MVar.html) which is empty until the actor has completed its work (note that this is different to the concurrent ruby implementation of Async, which uses a now-deprecated IVar).  
+The asynchronous wrapper always returns an object containing a [Concurrent::MVar](https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/MVar.html) which is empty until the actor has completed its work (note that this is different to the concurrent ruby implementation of Async, which uses a now-deprecated IVar).  
 
-If you need the return value from the method, there are two ways to access it.  You can call `take` on the returned MVar, or you can use the `await` method (which is just a fancy wrapper around `take`).  In both cases the calling thread will block until the value is returned.  In the example above, you can see what happens if you use neither of these methods - `puts @initial_status` returns the MVar itself, not any meaningful information.  The next line then calls `@initial_status.take` to wait until the return value is generated.  
+If you need the return value from the method, there are two ways to access it.  You can call `value` on the returned MVar, or you can use the `await` method (which is just a fancy wrapper around `value`).  In both cases the calling thread will block until the value is returned.  In the example above, you can see what happens if you use neither of these methods - `puts @initial_status` returns the internal message object itself, not any meaningful information.  The next line then calls `@initial_status.value` to wait until the return value is generated.  
 
 ### The sequence of asynchronous calls
 
@@ -102,7 +102,7 @@ When the queue starts processing that message, `_do_some_long_running_task` (the
 
 - If you make a public method asynchronous, you need to make _all_ public methods asynchronous.  You cannot mix and match asynchronous and synchronous usage. 
 - Never make internal instance variables directly accessible without an asynchronous method call.  Do not use `attr_reader` or `attr_accessor` -  these will bypass the internal queue and you may get inconsistent results from the actor.  For the same reason, never update internal variables outside of an asynchronous call.  
-- When an object is calling its own internal methods, never use `await` or `take` as this will cause your actor to block indefinitely.  Either call the asynchronous method if it does not matter when the method call starts or finishes.  Or use the internal implementation `_rename` if the call needs to start immediately or you need the return value.
+- When an object is calling its own internal methods, never use `await` or `value` as this will cause your actor to block indefinitely.  Either call the asynchronous method if it does not matter when the method call starts or finishes.  Or use the internal implementation `_rename` if the call needs to start immediately or you need the return value.
 - Avoid class variables.  These are effectively global variables that are accessible without any locking around them, so you could get inconsistent results.  
 
 ## Making Rails work with Concurrent-Ruby
