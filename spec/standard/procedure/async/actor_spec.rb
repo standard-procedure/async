@@ -43,21 +43,25 @@ RSpec.describe Standard::Procedure::Async::Actor do
   end
 
   it "adds multiple messages to a queue and performs them in order" do
-    klass = Class.new do
+    values = Concurrent::Array.new
+
+    klass = Struct.new(:values) do
       include Standard::Procedure::Async::Actor
 
       async_def :do_something do |number|
-        sleep rand(0.1)
-        number
+        sleep(0.3) if number % 2 == 0
+        values << number
+        :done
       end
     end
     instance = klass.new
-    # the implementation of do_something sleeps for a random amount of time
-    # so even though we add all the messages to the queue at once
-    # and ask for the values in reverse order
-    # we still expect the sequence to hold
+    # Because do_something sleeps for a random amount of time,
+    # it will theoretically fill up the values array in a random order.
+    # However as the actor queues all the method calls
+    # and performs them in order, the values array should be in order.
     results = (1..10).map { |number| instance.do_something(number) }
-    values_in_reverse = results.length.downto(1).map { |i| results[i - 1].value }
-    expect(values_in_reverse).to eq (1..10).to_a.reverse
+    # wait for all the messages to finish
+    results.each(&:value)
+    expect(values).to eq (1..10).to_a
   end
 end
