@@ -52,8 +52,8 @@ module StandardProcedure::Async
     end
 
     class Message < Concurrent::ImmutableStruct.new(:target, :name, :args, :block, :result)
-      def value
-        result.take
+      def value(timeout: 30)
+        result.take(timeout)
       end
 
       def call

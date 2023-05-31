@@ -64,4 +64,18 @@ RSpec.describe StandardProcedure::Async::Actor do
     results.each(&:value)
     expect(values).to eq (1..10).to_a
   end
+
+  it "times out when attempting to retrieve a result from a method that has not finished" do
+    klass = Class.new do
+      include StandardProcedure::Async::Actor
+
+      async :wait_for_ages do
+        sleep 10 # this will never finish
+        "You will never see this"
+      end
+    end
+
+    result = klass.new.wait_for_ages
+    expect(result.value(timeout: 0.1)).to eq Concurrent::MVar::TIMEOUT
+  end
 end

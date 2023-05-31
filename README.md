@@ -158,11 +158,13 @@ Picture this:
 
 To avoid this, if you ever need the return value from an internal `async` method, always call the implementation method:  `_do_complicated_calculation` instead of `do_complicated_calculation`.  This does not put anything on the queue and proceeds as a normal method call.  
 
+As a fail-safe, any calls to `value` will also time-out after 30 seconds, returning Concurrent::MVar::TIMEOUT.  If you need to override the timeout value you can use `message.value(timeout: value_in_seconds)`.  
+
 ### The rules of using actors
 
 - If you make a public method asynchronous, you need to make _all_ public methods asynchronous.  You cannot mix and match asynchronous and synchronous usage. The simplest way to comply is to make all your public methods as `async` and your protected and private methods as synchronous.  
 - Never make internal instance variables directly accessible without an asynchronous method call.  Do not use `attr_reader` or `attr_accessor` -  these will bypass the internal queue and you may get inconsistent results from the actor.  For the same reason, never update internal variables outside of an asynchronous call.  In Object-Oriented terms, the doctrine is "Tell, don't Ask": tell your objects what you want them to do, instead of asking them for information about themselves.  
-- When an object is calling its own internal methods, never use `await` or `value` as this will cause your actor to block indefinitely.  If you don't care about the return value or if it does not matter when the method starts and finishes, call the asynchronous method.  If you need the return value or need to be sure that the method runs immediately then use the internal implementation - `_my_method` instead of `my_method`.
+- When an object is calling its own internal methods, never use `await` or `value` as this will cause your actor to block indefinitely (actually, they will time out after 30s).  If you don't care about the return value or if it does not matter when the method starts and finishes, call the asynchronous method.  If you need the return value or need to be sure that the method runs immediately then use the internal implementation - `_my_method` instead of `my_method`.
 - Avoid class variables.  These are effectively global variables that are accessible without any locking around them, so you could get inconsistent results.  If you must have class variables, intialize them on startup and if they are mutable, use concurrent-ruby's thread-safe objects.  
 
 ## Making Rails work with Concurrent-Ruby
