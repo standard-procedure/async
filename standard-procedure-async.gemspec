@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "lib/standard/procedure/async/version"
+require_relative "lib/standard_procedure/async/version"
 
 Gem::Specification.new do |spec|
   spec.name = "standard-procedure-async"
-  spec.version = Standard::Procedure::Async::VERSION
+  spec.version = StandardProcedure::Async::VERSION
   spec.authors = ["Rahoul Baruah"]
   spec.email = ["rahoulb@standardprocedure.app"]
 

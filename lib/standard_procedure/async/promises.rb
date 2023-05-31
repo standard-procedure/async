@@ -3,7 +3,7 @@
 require_relative "rails_not_loaded_error"
 require "concurrent/promises"
 
-module Standard::Procedure::Async
+module StandardProcedure::Async
   class Promises
     def initialize
       @promises = rails_is_loaded? ? ConcurrentRails::Promises : Concurrent::Promises

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Standard::Procedure::Async
+module StandardProcedure::Async
   class Error < StandardError
   end
 end

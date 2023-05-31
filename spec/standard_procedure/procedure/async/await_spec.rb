@@ -1,7 +1,7 @@
-RSpec.describe Standard::Procedure::Async::Actor do
+RSpec.describe StandardProcedure::Async::Actor do
   it "waits until the asynchronous method has completed before returning the result" do
     klass = Class.new do
-      include Standard::Procedure::Async::Actor
+      include StandardProcedure::Async::Actor
 
       async :do_something do
         sleep 0.2

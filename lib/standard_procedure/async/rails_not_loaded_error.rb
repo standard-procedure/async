@@ -2,7 +2,7 @@
 
 require_relative "error"
 
-module Standard::Procedure::Async
+module StandardProcedure::Async
   class RailsNotLoadedError < Error
   end
 end

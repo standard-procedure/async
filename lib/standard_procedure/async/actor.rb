@@ -4,7 +4,7 @@ require "concurrent/array"
 require "concurrent/mvar"
 require "concurrent/immutable_struct"
 
-module Standard::Procedure::Async
+module StandardProcedure::Async
   module Actor
     def self.included base
       base.class_eval do
@@ -44,7 +44,7 @@ module Standard::Procedure::Async
     end
 
     def _perform_messages
-      Standard::Procedure::Async.promises.future do
+      StandardProcedure::Async.promises.future do
         while (message = _messages.shift)
           message.call
         end

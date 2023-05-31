@@ -1,7 +1,7 @@
-RSpec.describe Standard::Procedure::Async::Actor do
+RSpec.describe StandardProcedure::Async::Actor do
   it "defines an asynchronous method and a hidden implementation method on a class" do
     klass = Class.new do
-      include Standard::Procedure::Async::Actor
+      include StandardProcedure::Async::Actor
 
       async :do_something do
         :the_result
@@ -18,7 +18,7 @@ RSpec.describe Standard::Procedure::Async::Actor do
     current_thread = Thread.current.to_s
 
     klass = Struct.new(:lock) do
-      include Standard::Procedure::Async::Actor
+      include StandardProcedure::Async::Actor
 
       async :do_something do
         # wait till the main thread tells us to go
@@ -46,7 +46,7 @@ RSpec.describe Standard::Procedure::Async::Actor do
     values = Concurrent::Array.new
 
     klass = Struct.new(:values) do
-      include Standard::Procedure::Async::Actor
+      include StandardProcedure::Async::Actor
 
       async :do_something do |number|
         sleep(0.3) if number % 2 == 0
