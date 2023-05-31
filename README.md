@@ -202,7 +202,7 @@ Or install it yourself as:
 Coming soon
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/standard-procedure-async.
+Bug reports and pull requests are welcome on GitHub at https://github.com/standard-procedure/async.
 
 ## License
 
