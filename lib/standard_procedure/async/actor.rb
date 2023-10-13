@@ -60,10 +60,7 @@ module StandardProcedure::Async
       alias_method :await, :value
 
       def then &block
-        puts "in then"
         block&.call value
-        puts "called handler"
-        return self 
       end
 
       def call

@@ -165,6 +165,22 @@ This queueing has an important implication.
 If you are within an actor class, you can happily call async methods on other objects and `await` the results - because each actor has its own independent queue.  But if you are calling your own methods, you must **never** call `await` (or call `value` on the returned message object).  
 
 Picture this: 
+
+```ruby 
+class ClassThatWillDeadlock 
+  include StandardProcedure::Async::Actor 
+
+  async :start_processing do 
+    do_some_complicated_calculation.value 
+  end
+  
+  async :do_some_complicated_calculation do 
+    sleep 1 
+    2 + 2   
+  end
+end
+```
+
 - Your actor has two `async` methods - `start_processing` and `do_complicated_calculation`
 - The main thread calls `start_processing` - so a message gets added to the head of the queue.  
 - The actor's internal thread starts working on the message at the head of the queue, and `_start_processing` (the actual implementation) is called.
@@ -174,6 +190,22 @@ Picture this:
 - Your actor is now deadlocked and will not be able to do any more work.  
 
 To avoid this, if you ever need the return value from an internal `async` method, always call the implementation method:  `_do_complicated_calculation` instead of `do_complicated_calculation`.  This does not put anything on the queue and proceeds as a normal method call.  
+
+```ruby 
+class ClassThatWillNotDeadlock 
+  include StandardProcedure::Async::Actor 
+
+  async :start_processing do 
+    _do_some_complicated_calculation
+  end
+  
+  async :do_some_complicated_calculation do 
+    sleep 1 
+    2 + 2   
+  end
+end
+```
+
 
 As a fail-safe, any calls to `value` will also time-out after 30 seconds, returning Concurrent::MVar::TIMEOUT.  If you need to override the timeout value you can use `message.value(timeout: value_in_seconds)`.  
 
