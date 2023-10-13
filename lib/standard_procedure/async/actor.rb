@@ -51,9 +51,16 @@ module StandardProcedure::Async
       end
     end
 
+    # nodoc:
     class Message < Concurrent::ImmutableStruct.new(:target, :name, :args, :block, :result)
       def value(timeout: 30)
         result.take(timeout)
+      end
+      alias_method :get, :value
+      alias_method :await, :value
+
+      def then &block
+        block&.call value
       end
 
       def call
