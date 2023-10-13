@@ -75,14 +75,18 @@ end
 
 # Getting started
 puts @my_object.report_status # => internal message object
-puts @my_object.report_status.value # => :idle
+@my_object.report_status.then do |value|
+  puts value # => :idle
+end
 puts await { @my_object.report_status } # => :idle
 puts await { @my_object.greet } # => "Hello George"
+
 # Do some actual work
 await { @my_object.rename "Ringo" }
 puts await { @my_object.greet } # => "Hello Ringo"
 @my_object.rename "Paul" # Note: we didn't use await here - we'll talk about that later
 puts await { @my_object.greet } # => "Hello Paul"
+
 # Do something a bit more complex
 @initial_status = @my_object.do_some_long_running_task 
 puts await { @initial_status } # => :in_progress
@@ -99,19 +103,32 @@ When defining `MyObject`, we use `async` instead of `def` for each method.  For 
 
 ### Awaiting the results from those methods
 
-The asynchronous wrapper always returns a internal message object that contains a [Concurrent::MVar](https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/MVar.html).  The MVar is empty until the actor has completed its work but if you need the return value from the method, there are two ways to access it.    
+The asynchronous wrapper always returns a internal message object that contains a [Concurrent::MVar](https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/MVar.html).  The MVar is empty until the actor has completed its work but if you need the return value from the method, there are a few ways to access it.    
 
-You can call `value` on the returned message.  
+You can call `value` on the returned message.  For convenience, `value` is also aliased as `get` and `await`.  
 
-Or you can use the `await` method (which is just a fancy wrapper around `value`).  
+```ruby
+  # The following calls are all equivalent
+  @my_object.report_status.value 
+  @my_object.report_status.get 
+  @my_object.report_status.await
+```
 
-In both cases the calling thread will block until the value is returned.  
+You can use the global `await` method.
 
-In the example above, you can see how this works. 
+```ruby 
+  puts await { @my_object.report_status }
+```
 
-- `puts @my_object.report_status` returns the internal message object itself, not any meaningful information.  
-- `puts @my_object.report_status.value` blocks until the `report_status` method has completed and gives you the return value.
-- `puts await { @my_object.report_status }` is just a fancier (and potentially more readable and explicit) way of doing the same thing
+Or you can use the [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)-style resolution. 
+
+```ruby
+  @my_object.report_status.then do |value|
+    puts value 
+  end
+```
+
+In all cases the calling thread will block until the value is returned (or the `then` clause is triggered).  
 
 ### The strict sequencing of asynchronous calls
 
@@ -200,10 +217,11 @@ Or install it yourself as:
 ## Development
 
 Coming soon
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/standard-procedure/async.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+The gem is available as open source under the terms of the [GNU Lesser General Public Licence](https://www.gnu.org/licenses/lgpl-3.0.txt).  Paraphrased, this means you can use this library in your applications, but you must make give prominent notice that you are using this code, under this licence, and you must make the source to this library available if the software is distributed.  Any changes you make _to this library_ must also be released under the LGPL and made available if the software is distributed.  The licensing for your own code (that does not amend this library) is unaffected.  

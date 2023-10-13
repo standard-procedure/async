@@ -41,16 +41,84 @@ RSpec.describe StandardProcedure::Async::Actor do
     # test that do_something actually ran in a different thread
     expect(other_thread).not_to eq current_thread
   end
+  
+  it "accesses the result of an asynchronous method using #value" do 
+    klass = Class.new do 
+      include StandardProcedure::Async::Actor
+    
+      async :say_hello do
+        sleep 0.1
+        "Hello"
+      end
+    end
+    
+    expect(klass.new.say_hello.value).to eq "Hello"
+  end
+
+  it "accesses the result of an asynchronous method using #await" do 
+    klass = Class.new do 
+      include StandardProcedure::Async::Actor
+    
+      async :say_hello do
+        sleep 0.1
+        "Hello"
+      end
+    end
+    
+    expect(klass.new.say_hello.await).to eq "Hello"
+  end
+
+  it "accesses the result of an asynchronous method using #get" do 
+    klass = Class.new do 
+      include StandardProcedure::Async::Actor
+    
+      async :say_hello do
+        sleep 0.1
+        "Hello"
+      end
+    end
+    
+    expect(klass.new.say_hello.get).to eq "Hello"
+  end
+
+  # it "accesses the result of an asynchronous method using #then, yielding the result in the caller's thread" do 
+  #   current_thread = Thread.current.to_s
+  #   other_thread = nil 
+  #   handler_thread = nil
+  #   
+  #   klass = Class.new do 
+  #     include StandardProcedure::Async::Actor
+  #   
+  #     async :do_something do
+  #       puts "doing something"
+  #       sleep 2
+  #       puts "done it"
+  #       Thread.current.to_s
+  #     end
+  #   end
+  #   
+  #   puts Thread.current.to_s 
+  #   klass.new.do_something.then do |result|
+  #     puts "in handler"
+  #     puts Thread.current.to_s 
+  #     other_thread = result 
+  #     handler_thread = Thread.current.to_s 
+  #     puts "handler is done #{other_thread}"
+  #   end
+  #   
+  #   expect(other_thread).to_not eq current_thread
+  #   expect(handler_thread).to eq current_thread
+  # end
 
   it "adds multiple messages to a queue and performs them in order" do
-    values = Concurrent::Array.new
+    things = Concurrent::Array.new
 
-    klass = Struct.new(:values) do
+    klass = Struct.new(:things) do
       include StandardProcedure::Async::Actor
 
       async :do_something do |number|
         sleep(0.3) if number % 2 == 0
-        values << number
+        things << number
         :done
       end
     end
@@ -62,7 +130,7 @@ RSpec.describe StandardProcedure::Async::Actor do
     results = (1..10).map { |number| instance.do_something(number) }
     # wait for all the messages to finish
     results.each(&:value)
-    expect(values).to eq (1..10).to_a
+    expect(things).to eq (1..10).to_a
   end
 
   it "times out when attempting to retrieve a result from a method that has not finished" do
@@ -76,6 +144,6 @@ RSpec.describe StandardProcedure::Async::Actor do
     end
 
     result = klass.new.wait_for_ages
-    expect(result.value(timeout: 0.1)).to eq Concurrent::MVar::TIMEOUT
+    expect(result.value(timeout: 1)).to eq Concurrent::MVar::TIMEOUT
   end
 end
