@@ -3,6 +3,7 @@
 require "concurrent/array"
 require "concurrent/mvar"
 require "concurrent/immutable_struct"
+require_relative "promises"
 
 module StandardProcedure::Async
   module Actor
@@ -12,6 +13,7 @@ module StandardProcedure::Async
 
         def initialize *args
           super
+          @_promises = StandardProcedure::Async::Promises.new
           @_messages = Concurrent::Array.new
         end
       end
@@ -22,12 +24,12 @@ module StandardProcedure::Async
         name = name.to_sym
         implementation_name = :"_#{name}"
 
-        define_method name.to_sym do |*args, &block|
-          _add_message_to_queue(implementation_name, *args, &block)
+        define_method name do |*args, **params, &block|
+          _add_message_to_queue(implementation_name, *args, **params, &block)
         end
 
-        define_method implementation_name do |*args, &block|
-          implementation.call(*args, &block)
+        define_method implementation_name do |*args, **params, &block|
+          implementation.call(*args, **params, &block)
         end
       end
     end
@@ -36,15 +38,15 @@ module StandardProcedure::Async
 
     attr_reader :_messages
 
-    def _add_message_to_queue name, *args, &block
-      message = Message.new(self, name, args, block, Concurrent::MVar.new)
+    def _add_message_to_queue name, *args, **params, &block
+      message = Message.new(self, name, args, params, block, Concurrent::MVar.new)
       _messages << message
       _perform_messages if _messages.count == 1
       message
     end
 
     def _perform_messages
-      StandardProcedure::Async.promises.future do
+      @_promises.future do
         while (message = _messages.shift)
           message.call
         end
@@ -52,7 +54,7 @@ module StandardProcedure::Async
     end
 
     # nodoc:
-    class Message < Concurrent::ImmutableStruct.new(:target, :name, :args, :block, :result)
+    class Message < Concurrent::ImmutableStruct.new(:target, :name, :args, :params, :block, :result)
       def value(timeout: 30)
         result.take(timeout)
       end
@@ -64,7 +66,7 @@ module StandardProcedure::Async
       end
 
       def call
-        result.put target.send(name, *args, &block)
+        result.put target.send(name, *args, **params, &block)
       end
     end
   end
