@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "lib/standard_procedure/async/version"
+require_relative "lib/standard_procedure/async"
 
 Gem::Specification.new do |spec|
   spec.name = "standard-procedure-async"

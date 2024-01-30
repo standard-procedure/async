@@ -55,6 +55,18 @@ RSpec.describe StandardProcedure::Async::Actor do
     expect(klass.new.say_hello.value).to eq "Hello"
   end
 
+  it "raises an exception when calling #value if the asynchronous method raises an exception" do
+    klass = Class.new do
+      include StandardProcedure::Async::Actor
+
+      async :say_hello do
+        raise "Failure"
+      end
+    end
+
+    expect { klass.new.say_hello.value }.to raise_error "Failure"
+  end
+
   it "accesses the result of an asynchronous method using #await" do
     klass = Class.new do
       include StandardProcedure::Async::Actor

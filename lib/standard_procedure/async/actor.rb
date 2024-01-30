@@ -55,7 +55,9 @@ module StandardProcedure
       # nodoc:
       class Message < Concurrent::ImmutableStruct.new(:target, :name, :args, :params, :block, :result)
         def value(timeout: 30)
-          result.take(timeout)
+          result.take(timeout).tap do |value|
+            raise value if value.is_a? Exception
+          end
         end
         alias_method :get, :value
         alias_method :await, :value
